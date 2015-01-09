@@ -4,10 +4,12 @@ package rv
 
 import (
 	"encoding/json"
+	"io"
 	"net/url"
+	"strings"
 )
 
-// Request is the interface to implement to allow req to read values
+// Request is the interface to implement to allow rv to read values
 // from a HTTP request.
 type Request interface {
 	QueryArgs() (url.Values, error)
@@ -31,16 +33,26 @@ func (r *BasicRequest) PathArgs() (map[string]string, error) {
 	return r.Path, nil
 }
 func (r *BasicRequest) BodyJson() (map[string]interface{}, error) {
-	if r.Body == "" {
-		return nil, nil
-	}
-
-	parsed := make(map[string]interface{})
-	if err := json.Unmarshal([]byte(r.Body), &parsed); err != nil {
-		return nil, err
-	}
-	return parsed, nil
+	return ParseJsonBody(strings.NewReader(r.Body))
 }
 func (r *BasicRequest) BodyForm() (url.Values, error) {
 	return url.ParseQuery(r.Body)
+}
+
+func ParseJsonBody(body io.Reader) (map[string]interface{}, error) {
+	if body == nil {
+		return nil, nil
+	}
+
+	decoder := json.NewDecoder(body)
+
+	parsed := make(map[string]interface{})
+
+	if err := decoder.Decode(&parsed); err == io.EOF {
+		return nil, nil
+	} else if err != nil {
+		return nil, err
+	}
+
+	return parsed, nil
 }
