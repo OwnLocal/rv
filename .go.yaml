@@ -1,0 +1,9 @@
+---
+path: github.com/pib/rv
+deps:
+  - loc: github.com/gocraft/web
+
+  - loc: gopkg.in/onsi/ginkgo.v1
+  - loc: gopkg.in/onsi/ginkgo.v1/ginkgo
+  - loc: gopkg.in/onsi/gomega.v1
+
