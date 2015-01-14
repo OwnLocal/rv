@@ -1,6 +1,10 @@
 package rv_test
 
 import (
+	"fmt"
+	"math"
+	"strings"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/ownlocal/rv"
@@ -55,6 +59,143 @@ var _ = Describe("Validators", func() {
 				rv.SourceFieldHandler{Source: rv.FORM, Field: "three"}.Run(req, field)
 				Expect(field.Value).To(Equal("four"))
 			})
+
+		})
+	})
+
+	Describe("TypeHandler", func() {
+
+		Describe("NewTypeHandler", func() {
+
+			for _, typeName := range strings.Split("bool int int8 int16 int32 int64 uint uint8 uint16 uint32 uint64 float32 float64 string", " ") {
+				It(fmt.Sprintf("accepts %s type", typeName), func() {
+					Expect(rv.NewTypeHandler([]string{typeName})).To(Equal(rv.TypeHandler{Type: typeName}))
+				})
+			}
+
+			for _, typeName := range strings.Split("uintptr complex64 complex128 array func interface map ptr slice struct unsafe.Pointer", " ") {
+				It(fmt.Sprintf("doesn't accept %s type yet", typeName), func() {
+					_, err := rv.NewTypeHandler([]string{typeName})
+					Expect(err).To(HaveOccurred())
+				})
+			}
+
+		})
+
+		Describe("Run", func() {
+			type tm struct {
+				ttype string
+				from  interface{}
+				to    interface{}
+			}
+
+			for _, tc := range []tm{
+				tm{"bool", true, true},
+				tm{"bool", "true", true},
+				tm{"bool", "yes", true},
+				tm{"bool", "1", true},
+				tm{"bool", false, false},
+				tm{"bool", "false", false},
+				tm{"bool", "no", false},
+				tm{"bool", "0", false},
+				tm{"bool", 1, true},
+				tm{"bool", 0, false},
+				tm{"bool", uint(1), true},
+				tm{"bool", uint(0), false},
+
+				tm{"int", "42", 42},
+				tm{"int", 42, 42},
+				tm{"int8", int64(42), int8(42)},
+				tm{"int16", int8(42), int16(42)},
+				tm{"int32", int(42), int32(42)},
+				tm{"int64", int32(42), int64(42)},
+
+				tm{"int", "-42", -42},
+				tm{"int", -42, -42},
+				tm{"int8", int64(-42), int8(-42)},
+				tm{"int16", int8(-42), int16(-42)},
+				tm{"int32", int(-42), int32(-42)},
+				tm{"int64", int32(-42), int64(-42)},
+
+				tm{"uint", "42", uint(42)},
+				tm{"uint", 42, uint(42)},
+				tm{"uint8", int64(42), uint8(42)},
+				tm{"uint16", int8(42), uint16(42)},
+				tm{"uint32", int(42), uint32(42)},
+				tm{"uint64", int32(42), uint64(42)},
+
+				tm{"uint8", uint64(42), uint8(42)},
+				tm{"uint16", uint8(42), uint16(42)},
+				tm{"uint32", uint(42), uint32(42)},
+				tm{"uint64", uint32(42), uint64(42)},
+
+				tm{"float32", 42.0, float32(42.0)},
+
+				tm{"string", "yarp", "yarp"},
+				tm{"string", false, "false"},
+				tm{"string", true, "true"},
+				tm{"string", int64(-4), "-4"},
+				tm{"string", int32(-3), "-3"},
+				tm{"string", int16(-2), "-2"},
+				tm{"string", int8(-1), "-1"},
+				tm{"string", 0, "0"},
+				tm{"string", uint8(1), "1"},
+				tm{"string", uint16(2), "2"},
+				tm{"string", uint32(3), "3"},
+				tm{"string", uint64(4), "4"},
+				tm{"string", float32(5.0), "5"},
+				tm{"string", float32(6.1), "6.1"},
+				tm{"string", float64(7.0), "7"},
+				tm{"string", float64(8.1), "8.1"},
+			} {
+				ttype, from, to := tc.ttype, tc.from, tc.to
+				It(fmt.Sprintf("coerces %T(%#v) to %s(%#v)", from, from, ttype, to), func() {
+					field.Value = from
+					rv.TypeHandler{Type: ttype}.Run(req, field)
+					Expect(field.Errors).To(BeEmpty())
+					Expect(field.Value).To(Equal(to))
+				})
+			}
+
+			for _, tc := range []tm{
+				tm{"bool", "foobly", nil},
+				tm{"bool", "42", nil},
+				tm{"bool", 42, nil},
+				tm{"bool", uint(42), nil},
+
+				tm{"int", "arrr", nil},
+				tm{"int8", uint64(42), nil},
+				tm{"int16", uint8(42), nil},
+				tm{"int32", uint(42), nil},
+				tm{"int64", uint32(42), nil},
+				tm{"int", uint64(math.MaxUint64), nil},
+				tm{"int8", int64(256), nil},
+				tm{"int32", uint64(math.MaxUint64), nil},
+				tm{"int64", uint64(math.MaxUint64), nil},
+
+				tm{"int8", int64(math.MinInt64), nil},
+				tm{"int16", int64(math.MinInt64), nil},
+				tm{"int32", int64(math.MinInt64), nil},
+
+				tm{"uint", "-42", nil},
+				tm{"uint", -42, nil},
+				tm{"uint8", int64(-42), nil},
+				tm{"uint16", int8(-42), nil},
+				tm{"uint32", int(-42), nil},
+				tm{"uint64", int32(-42), nil},
+
+				tm{"float32", "blar", nil},
+				tm{"float64", "blar", nil},
+			} {
+				ttype, from := tc.ttype, tc.from
+				It(fmt.Sprintf("cannot coerce %T(%v) to %s", from, from, ttype), func() {
+					field.Value = from
+					rv.TypeHandler{Type: ttype}.Run(req, field)
+					Expect(field.Value).To(Equal(from))
+					Expect(field.Errors).ToNot(BeEmpty())
+					Expect(field.Errors[0]).To(HaveOccurred())
+				})
+			}
 
 		})
 	})

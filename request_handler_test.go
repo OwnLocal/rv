@@ -34,7 +34,7 @@ var _ = Describe("RequestHandler", func() {
 			Expect(rh.Fields).To(BeEmpty())
 		})
 
-		It("generates a source and type handlers for fields with just a source specified", func() {
+		It("generates a source and type handler for fields with just a source specified", func() {
 			rh, err := rv.NewRequestHandler(struct {
 				Foo string `rv:"query.foo"`
 			}{})
