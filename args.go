@@ -22,15 +22,9 @@ var sources = []string{
 	"FORM",
 }
 
-type Range struct {
-	Start int
-	End   int
-}
-
-type Args struct {
-	Source  Source
-	Field   string
-	Range   Range
-	Options []string
-	Default string
+var sourceMap = map[string]Source{
+	"path":  PATH,
+	"query": QUERY,
+	"json":  JSON,
+	"form":  FORM,
 }
