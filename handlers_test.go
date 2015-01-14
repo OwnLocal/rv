@@ -199,4 +199,21 @@ var _ = Describe("Validators", func() {
 
 		})
 	})
+
+	Describe("DefaultHandler", func() {
+		Describe("Run", func() {
+
+			It("does nothing if there is already a value set", func() {
+				field.Value = "already set"
+				rv.DefaultHandler{Default: "not set"}.Run(req, field)
+				Expect(field.Value).To(Equal("already set"))
+			})
+
+			It("does sets the value to the default there is no value set", func() {
+				rv.DefaultHandler{Default: "not set"}.Run(req, field)
+				Expect(field.Value).To(Equal("not set"))
+			})
+
+		})
+	})
 })

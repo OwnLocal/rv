@@ -48,6 +48,22 @@ var _ = Describe("RequestHandler", func() {
 			Expect(rh.Fields).To(Equal(expected))
 		})
 
+		It("generates a default handler for tags that specify a default", func() {
+			rh, err := rv.NewRequestHandler(struct {
+				Foo string `rv:"query.foo default=bar"`
+			}{})
+			expected := map[string]rv.FieldHandlers{
+				"Foo": rv.FieldHandlers{
+					rv.SourceFieldHandler{Source: rv.QUERY, Field: "foo"},
+					rv.DefaultHandler{Default: "bar"},
+					rv.TypeHandler{Type: "string"},
+				},
+			}
+			Expect(err).NotTo(HaveOccurred())
+			Expect(rh.Fields).To(Equal(expected))
+
+		})
+
 	})
 
 })

@@ -15,3 +15,19 @@ type Field struct {
 	Value  interface{}
 	Errors []error
 }
+
+type DefaultHandler struct {
+	Default string
+}
+
+func NewDefaultHandler(args []string) (FieldHandler, error) {
+	return DefaultHandler{args[0]}, nil
+}
+
+func (h DefaultHandler) Run(req Request, field *Field) {
+	if field.Value == nil {
+		field.Value = h.Default
+	}
+}
+
+func (h DefaultHandler) Precidence() int { return 900 }

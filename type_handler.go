@@ -28,7 +28,7 @@ func NewTypeHandler(args []string) (FieldHandler, error) {
 	return TypeHandler{args[0]}, nil
 }
 
-func (h TypeHandler) Precidence() int { return 900 }
+func (h TypeHandler) Precidence() int { return 800 }
 func (h TypeHandler) Run(r Request, f *Field) {
 	var err error
 

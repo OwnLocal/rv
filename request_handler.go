@@ -6,8 +6,9 @@ import (
 )
 
 var handlerMap = map[string]FieldHandlerCreator{
-	"source": NewSourceFieldHandler,
-	"type":   NewTypeHandler,
+	"source":  NewSourceFieldHandler,
+	"type":    NewTypeHandler,
+	"default": NewDefaultHandler,
 }
 
 func NewRequestHandler(requestStruct interface{}) (*RequestHandler, error) {

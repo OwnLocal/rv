@@ -29,7 +29,7 @@ func extractTags(reqStruct interface{}) (map[string]map[string][]string, error) 
 
 		kind := field.Type.Kind()
 		opts["type"] = []string{kind.String()}
-		for _, opt := range strings.Split(tag, "=") {
+		for _, opt := range strings.Split(tag, " ") {
 			keyVal := strings.SplitN(opt, "=", 2)
 			if len(keyVal) == 1 {
 				keyVal = []string{"source", keyVal[0]}
