@@ -7,6 +7,24 @@ import (
 	. "github.com/onsi/gomega"
 )
 
+type SimpleRequest struct {
+	SimpleArg string `rv:"query.arg"`
+}
+
+type JsonRequest struct {
+	Type  []string `rv:"path.type options=posts,pages,categories"`
+	Size  int      `rv:"query.size range=1,50 default=10"`
+	From  int      `rv:"query.from range=0,1000 default=0"`
+	Query string   `rv:"json.q default=*"`
+}
+
+type FormRequest struct {
+	Type   []string `rv:"path.type options=posts,pages,categories"`
+	Size   int      `rv:"query.size range=1,50 default=10"`
+	From   int      `rv:"query.from range=0,1000 default=0"`
+	Filter []string `rv:"form.filter options=all,some,none default=all,some"`
+}
+
 var _ = Describe("RequestHandler", func() {
 
 	Describe("NewRequestHandler", func() {
