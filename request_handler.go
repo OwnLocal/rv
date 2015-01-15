@@ -9,6 +9,7 @@ var handlerMap = map[string]FieldHandlerCreator{
 	"source":  NewSourceFieldHandler,
 	"type":    NewTypeHandler,
 	"default": NewDefaultHandler,
+	"range":   NewRangeHandler,
 }
 
 func NewRequestHandler(requestStruct interface{}) (*RequestHandler, error) {

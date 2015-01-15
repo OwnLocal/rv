@@ -61,7 +61,21 @@ var _ = Describe("RequestHandler", func() {
 			}
 			Expect(err).NotTo(HaveOccurred())
 			Expect(rh.Fields).To(Equal(expected))
+		})
 
+		It("generates a range handler for tags that specify a range", func() {
+			rh, err := rv.NewRequestHandler(struct {
+				Foo string `rv:"query.foo range=1,10"`
+			}{})
+			expected := map[string]rv.FieldHandlers{
+				"Foo": rv.FieldHandlers{
+					rv.SourceFieldHandler{Source: rv.QUERY, Field: "foo"},
+					rv.TypeHandler{Type: "string"},
+					rv.RangeHandler{Start: "1", End: "10"},
+				},
+			}
+			Expect(err).NotTo(HaveOccurred())
+			Expect(rh.Fields).To(Equal(expected))
 		})
 
 	})

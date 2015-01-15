@@ -209,11 +209,69 @@ var _ = Describe("Validators", func() {
 				Expect(field.Value).To(Equal("already set"))
 			})
 
-			It("does sets the value to the default there is no value set", func() {
+			It("sets the value to the default there is no value set", func() {
 				rv.DefaultHandler{Default: "not set"}.Run(req, field)
 				Expect(field.Value).To(Equal("not set"))
 			})
 
 		})
 	})
+
+	Describe("DefaultHandler", func() {
+		Describe("Run", func() {
+
+			It("returns no error if value is in range", func() {
+				field.Value = 5
+				rv.RangeHandler{Start: "1", End: "10"}.Run(req, field)
+				Expect(field.Errors).To(BeEmpty())
+			})
+
+			It("works with uint values", func() {
+				field.Value = uint32(5)
+				rv.RangeHandler{Start: "1", End: "10"}.Run(req, field)
+				Expect(field.Errors).To(BeEmpty())
+			})
+
+			It("works with floating point values", func() {
+				field.Value = 5.5
+				rv.RangeHandler{Start: "1", End: "10"}.Run(req, field)
+				Expect(field.Errors).To(BeEmpty())
+			})
+
+			It("works with string values", func() {
+				field.Value = "abc"
+				rv.RangeHandler{Start: "aaa", End: "ddd"}.Run(req, field)
+				Expect(field.Errors).To(BeEmpty())
+			})
+
+			It("returns an error for out-of-range string values", func() {
+				field.Value = "zzz"
+				rv.RangeHandler{Start: "aaa", End: "ddd"}.Run(req, field)
+				Expect(field.Errors).ToNot(BeEmpty())
+				Expect(field.Errors[0]).To(HaveOccurred())
+			})
+
+			It("returns an error if there is no value", func() {
+				rv.RangeHandler{Start: "1", End: "10"}.Run(req, field)
+				Expect(field.Errors).ToNot(BeEmpty())
+				Expect(field.Errors[0]).To(HaveOccurred())
+			})
+
+			It("returns an error if the value is out of range", func() {
+				field.Value = -1
+				rv.RangeHandler{Start: "1", End: "10"}.Run(req, field)
+				Expect(field.Errors).ToNot(BeEmpty())
+				Expect(field.Errors[0]).To(HaveOccurred())
+			})
+
+			It("returns an error if the range is not valid", func() {
+				field.Value = 5
+				rv.RangeHandler{Start: "one", End: "10"}.Run(req, field)
+				Expect(field.Errors).ToNot(BeEmpty())
+				Expect(field.Errors[0]).To(HaveOccurred())
+			})
+
+		})
+	})
+
 })
