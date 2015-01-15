@@ -10,6 +10,7 @@ var handlerMap = map[string]FieldHandlerCreator{
 	"type":    NewTypeHandler,
 	"default": NewDefaultHandler,
 	"range":   NewRangeHandler,
+	"options": NewOptionsHandler,
 }
 
 func NewRequestHandler(requestStruct interface{}) (*RequestHandler, error) {

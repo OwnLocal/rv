@@ -274,4 +274,37 @@ var _ = Describe("Validators", func() {
 		})
 	})
 
+	Describe("OptionsHandler", func() {
+		y := struct{}{}
+		Describe("Run", func() {
+
+			It("returns no error if value is in options", func() {
+				field.Value = "two"
+				rv.OptionsHandler{Options: map[string]struct{}{"one": y, "two": y, "three": y}}.Run(req, field)
+				Expect(field.Errors).To(BeEmpty())
+			})
+
+			It("returns an error if value is not in options", func() {
+				field.Value = "five"
+				rv.OptionsHandler{Options: map[string]struct{}{"one": y, "two": y, "three": y}}.Run(req, field)
+				Expect(field.Errors).ToNot(BeEmpty())
+				Expect(field.Errors[0]).To(HaveOccurred())
+			})
+
+			It("works on ints", func() {
+				field.Value = 5
+				rv.OptionsHandler{Options: map[string]struct{}{"1": y, "2": y, "3": y}}.Run(req, field)
+				Expect(field.Errors).ToNot(BeEmpty())
+				Expect(field.Errors[0]).To(HaveOccurred())
+			})
+
+			It("works on floats", func() {
+				field.Value = 2.2
+				rv.OptionsHandler{Options: map[string]struct{}{"1.1": y, "2.2": y, "3.3": y}}.Run(req, field)
+				Expect(field.Errors).To(BeEmpty())
+			})
+
+		})
+	})
+
 })

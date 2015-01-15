@@ -114,3 +114,26 @@ func (h RangeHandler) floatRange() (min, max float64, err error) {
 	}
 	return min, max, err
 }
+
+type OptionsHandler struct {
+	Options map[string]struct{}
+}
+
+func NewOptionsHandler(args []string) (FieldHandler, error) {
+	argSet := map[string]struct{}{}
+	for _, arg := range args {
+		argSet[arg] = struct{}{}
+	}
+	return OptionsHandler{Options: argSet}, nil
+}
+
+func (h OptionsHandler) Run(req Request, field *Field) {
+	val := fmt.Sprintf("%v", field.Value)
+	if _, valid := h.Options[val]; !valid {
+		var options []string
+		for opt, _ := range h.Options {
+			options = append(options, opt)
+		}
+		field.Errors = append(field.Errors, fmt.Errorf("Expected one of %#v, got %#v", options, val))
+	}
+}
