@@ -96,12 +96,13 @@ var _ = Describe("RequestHandler", func() {
 
 		It("generates a list handler for tags on list types", func() {
 			rh, err := rv.NewRequestHandler(struct {
-				Foo []string `rv:"query.foo options=one,two,three"`
+				Foo []string `rv:"query.foo options=one,two,three default=one,two"`
 			}{})
 			y := struct{}{}
 			expected := map[string]rv.FieldHandlers{
 				"Foo": rv.FieldHandlers{
 					rv.SourceFieldHandler{Source: rv.QUERY, Field: "foo"},
+					rv.DefaultHandler{Default: []string{"one", "two"}},
 					rv.ListHandler{SubHandlers: rv.FieldHandlers{
 						rv.TypeHandler{Type: "string"},
 						rv.OptionsHandler{Options: map[string]struct{}{"one": y, "two": y, "three": y}},
@@ -111,7 +112,39 @@ var _ = Describe("RequestHandler", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(rh.Fields).To(Equal(expected))
 		})
+	})
 
+	Describe("Run", func() {
+		type testStruct struct {
+			Foo []string `rv:"query.foo options=one,two,three default=one"`
+		}
+
+		var (
+			rh  *rv.RequestHandler
+			err error
+			req *rv.BasicRequest
+		)
+
+		BeforeEach(func() {
+			rh, err = rv.NewRequestHandler(testStruct{})
+			req = &rv.BasicRequest{}
+		})
+
+		It("returns an error if not supplied a pointer to the type of struct it expects", func() {
+			ts := testStruct{}
+			err, fieldErrs := rh.Run(req, ts)
+
+			Expect(fieldErrs).To(BeEmpty())
+			Expect(err).To(MatchError("Expected *rv_test.testStruct, got rv_test.testStruct"))
+		})
+
+		It("fills in the struct values if there are no errors", func() {
+			ts := testStruct{}
+			err, fieldErrs := rh.Run(req, &ts)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(fieldErrs).To(BeEmpty())
+			Expect(ts.Foo).To(Equal([]string{"one"}))
+		})
 	})
 
 })

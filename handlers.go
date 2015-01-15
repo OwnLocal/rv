@@ -24,10 +24,13 @@ type Field struct {
 }
 
 type DefaultHandler struct {
-	Default string
+	Default interface{}
 }
 
 func NewDefaultHandler(args []string) (FieldHandler, error) {
+	if len(args) > 1 {
+		return DefaultHandler{args}, nil
+	}
 	return DefaultHandler{args[0]}, nil
 }
 
@@ -157,7 +160,7 @@ func (h ListHandler) Run(req Request, field *Field) {
 			fields = append(fields, &Field{Value: slice.Index(i).Interface()})
 		}
 	} else {
-		field.Errors = append(field.Errors, fmt.Errorf("Expected a comma-separated string or a slice, got %#v", field.Value))
+		fields = append(fields, &Field{Value: field.Value})
 	}
 
 	for _, subField := range fields {

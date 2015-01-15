@@ -215,6 +215,20 @@ var _ = Describe("Validators", func() {
 	})
 
 	Describe("DefaultHandler", func() {
+		Describe("NewDefaultHandler", func() {
+			It("has a single value if it gets a single argument", func() {
+				h, err := rv.NewDefaultHandler([]string{"one"})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(h.(rv.DefaultHandler).Default).To(Equal("one"))
+			})
+
+			It("has a slice of values if it gets a multiple arguments", func() {
+				h, err := rv.NewDefaultHandler([]string{"one", "two", "three"})
+				Expect(err).NotTo(HaveOccurred())
+				Expect(h.(rv.DefaultHandler).Default).To(Equal([]string{"one", "two", "three"}))
+			})
+		})
+
 		Describe("Run", func() {
 
 			It("does nothing if there is already a value set", func() {
@@ -231,7 +245,7 @@ var _ = Describe("Validators", func() {
 		})
 	})
 
-	Describe("DefaultHandler", func() {
+	Describe("RangeHandler", func() {
 		Describe("Run", func() {
 
 			It("returns no error if value is in range", func() {
@@ -368,6 +382,24 @@ var _ = Describe("Validators", func() {
 					Expect(field.Value).To(Equal([]string{"one", "two", "three"}))
 					ow := fmt.Errorf("ow")
 					Expect(field.Errors).To(Equal([]error{ow, ow, ow}))
+				})
+
+			})
+
+			Context("When the supplied field is a single int", func() {
+				BeforeEach(func() {
+					handler = rv.ListHandler{SubHandlers: rv.FieldHandlers{
+						&mockHandler{errs: []error{fmt.Errorf("ow")}},
+					}}
+					field.Value = 42
+					handler.Run(req, field)
+				})
+
+				It("calls the SubHandlers for that item as if it were in a slice", func() {
+					Expect(handler.SubHandlers[0].(*mockHandler).called).To(Equal(1))
+					Expect(handler.SubHandlers[0].(*mockHandler).values).To(Equal([]interface{}{42}))
+					Expect(field.Value).To(Equal([]int{42}))
+					Expect(field.Errors).To(Equal([]error{fmt.Errorf("ow")}))
 				})
 
 			})

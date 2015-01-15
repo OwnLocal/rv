@@ -2,6 +2,7 @@ package rv
 
 import (
 	"fmt"
+	"reflect"
 	"sort"
 )
 
@@ -13,11 +14,18 @@ var handlerMap = map[string]FieldHandlerCreator{
 	"options": NewOptionsHandler,
 }
 
+type RequestHandler struct {
+	Fields      map[string]FieldHandlers
+	requestType reflect.Type
+}
+
 func NewRequestHandler(requestStruct interface{}) (*RequestHandler, error) {
 	tags, err := extractTags(requestStruct)
 	if err != nil {
 		return nil, err
 	}
+
+	requestHandler := RequestHandler{requestType: reflect.TypeOf(requestStruct)}
 
 	handlers := map[string]FieldHandlers{}
 	for field, opts := range tags {
@@ -45,7 +53,31 @@ func NewRequestHandler(requestStruct interface{}) (*RequestHandler, error) {
 		}
 		handlers[field] = fieldHandlers
 	}
-	return &RequestHandler{Fields: handlers}, nil
+	requestHandler.Fields = handlers
+	return &requestHandler, nil
+}
+
+func (h *RequestHandler) Run(req Request, requestStruct interface{}) (argErr error, fieldErrors map[string]Field) {
+	val := reflect.ValueOf(requestStruct)
+	if val.Type().Kind() != reflect.Ptr || val.Type().Elem() != h.requestType {
+		return fmt.Errorf("Expected *%v, got %v", h.requestType, val.Type()), nil
+	}
+	val = val.Elem()
+
+	fieldErrors = make(map[string]Field)
+	for name, handlers := range h.Fields {
+		field := Field{}
+		for _, handler := range handlers {
+			handler.Run(req, &field)
+		}
+		if len(field.Errors) > 0 {
+			fieldErrors[name] = field
+		} else if field.Value != nil {
+			val.FieldByName(name).Set(reflect.ValueOf(field.Value))
+		}
+	}
+
+	return nil, nil
 }
 
 func addRegularHandler(fieldHandlers FieldHandlers, opt string, args []string) (FieldHandlers, error) {
@@ -64,7 +96,7 @@ func addRegularHandler(fieldHandlers FieldHandlers, opt string, args []string) (
 func addListHandler(fieldHandlers FieldHandlers, listHandler ListHandler) (fh FieldHandlers) {
 	for _, handler := range fieldHandlers {
 		switch handler.(type) {
-		case SourceFieldHandler, TypeHandler:
+		case SourceFieldHandler, TypeHandler, DefaultHandler:
 			fh = append(fh, handler)
 		default:
 			listHandler.SubHandlers = append(listHandler.SubHandlers, handler)
@@ -72,10 +104,6 @@ func addListHandler(fieldHandlers FieldHandlers, listHandler ListHandler) (fh Fi
 	}
 	fh = append(fh, listHandler)
 	return fh
-}
-
-type RequestHandler struct {
-	Fields map[string]FieldHandlers
 }
 
 type FieldHandlers []FieldHandler
