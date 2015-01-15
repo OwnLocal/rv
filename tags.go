@@ -29,6 +29,11 @@ func extractTags(reqStruct interface{}) (map[string]map[string][]string, error) 
 
 		kind := field.Type.Kind()
 		opts["type"] = []string{kind.String()}
+
+		if opts["type"][0] == "slice" {
+			opts["type"] = append(opts["type"], field.Type.Elem().Kind().String())
+		}
+
 		for _, opt := range strings.Split(tag, " ") {
 			keyVal := strings.SplitN(opt, "=", 2)
 			if len(keyVal) == 1 {

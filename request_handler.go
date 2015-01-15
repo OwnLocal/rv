@@ -22,21 +22,56 @@ func NewRequestHandler(requestStruct interface{}) (*RequestHandler, error) {
 	handlers := map[string]FieldHandlers{}
 	for field, opts := range tags {
 		fieldHandlers := FieldHandlers{}
+		isList := false
+		var listHandler ListHandler
+
 		for opt, args := range opts {
-			handlerCreator, ok := handlerMap[opt]
-			if !ok {
-				return nil, fmt.Errorf("Invalid handler: %s", opt)
+			var err error
+			if opt == "type" && args[0] == "slice" {
+				isList = true
+				listHandler = ListHandler{}
+				listHandler.SubHandlers, err = addRegularHandler(FieldHandlers{}, "type", args[1:2])
+			} else {
+				fieldHandlers, err = addRegularHandler(fieldHandlers, opt, args)
 			}
-			handler, err := handlerCreator(args)
 			if err != nil {
 				return nil, err
 			}
-			fieldHandlers = append(fieldHandlers, handler)
+
 		}
 		sort.Stable(fieldHandlers)
+		if isList {
+			fieldHandlers = addListHandler(fieldHandlers, listHandler)
+		}
 		handlers[field] = fieldHandlers
 	}
 	return &RequestHandler{Fields: handlers}, nil
+}
+
+func addRegularHandler(fieldHandlers FieldHandlers, opt string, args []string) (FieldHandlers, error) {
+	handlerCreator, ok := handlerMap[opt]
+	if !ok {
+		return fieldHandlers, fmt.Errorf("Invalid handler: %s", opt)
+	}
+	handler, err := handlerCreator(args)
+	if err != nil {
+		return fieldHandlers, err
+	}
+	fieldHandlers = append(fieldHandlers, handler)
+	return fieldHandlers, nil
+}
+
+func addListHandler(fieldHandlers FieldHandlers, listHandler ListHandler) (fh FieldHandlers) {
+	for _, handler := range fieldHandlers {
+		switch handler.(type) {
+		case SourceFieldHandler, TypeHandler:
+			fh = append(fh, handler)
+		default:
+			listHandler.SubHandlers = append(listHandler.SubHandlers, handler)
+		}
+	}
+	fh = append(fh, listHandler)
+	return fh
 }
 
 type RequestHandler struct {

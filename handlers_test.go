@@ -10,6 +10,20 @@ import (
 	"github.com/ownlocal/rv"
 )
 
+type mockHandler struct {
+	called int
+	values []interface{}
+	errs   []error
+}
+
+func (h *mockHandler) Run(req rv.Request, field *rv.Field) {
+	h.values = append(h.values, field.Value)
+	h.called++
+	for _, err := range h.errs {
+		field.Errors = append(field.Errors, err)
+	}
+}
+
 var _ = Describe("Validators", func() {
 	var req *rv.BasicRequest
 	var field *rv.Field
@@ -304,6 +318,89 @@ var _ = Describe("Validators", func() {
 				Expect(field.Errors).To(BeEmpty())
 			})
 
+		})
+	})
+
+	Describe("ListHandler", func() {
+		Describe("Run", func() {
+			var handler rv.ListHandler
+
+			Context("When the supplied field value is a comma-separated string", func() {
+				BeforeEach(func() {
+					handler = rv.ListHandler{SubHandlers: rv.FieldHandlers{
+						&mockHandler{errs: []error{fmt.Errorf("ow")}},
+						&mockHandler{},
+					}}
+					field.Value = "one,two,three"
+					handler.Run(req, field)
+				})
+
+				It("splits string arguments and calls each sub-handler with each one", func() {
+					Expect(handler.SubHandlers[0].(*mockHandler).called).To(Equal(3))
+					Expect(handler.SubHandlers[0].(*mockHandler).values).To(Equal([]interface{}{"one", "two", "three"}))
+					Expect(handler.SubHandlers[1].(*mockHandler).called).To(Equal(3))
+					Expect(handler.SubHandlers[1].(*mockHandler).values).To(Equal([]interface{}{"one", "two", "three"}))
+				})
+
+				It("sets the field value to a list of the types specified", func() {
+					Expect(field.Value).To(Equal([]string{"one", "two", "three"}))
+				})
+
+				It("gathers errors returned by handlers into the top-level field", func() {
+					ow := fmt.Errorf("ow")
+					Expect(field.Errors).To(Equal([]error{ow, ow, ow}))
+				})
+
+			})
+
+			Context("When the supplied field is already a slice of strings", func() {
+				BeforeEach(func() {
+					handler = rv.ListHandler{SubHandlers: rv.FieldHandlers{
+						&mockHandler{errs: []error{fmt.Errorf("ow")}},
+					}}
+					field.Value = []string{"one", "two", "three"}
+					handler.Run(req, field)
+				})
+
+				It("still works as expected", func() {
+					Expect(handler.SubHandlers[0].(*mockHandler).called).To(Equal(3))
+					Expect(handler.SubHandlers[0].(*mockHandler).values).To(Equal([]interface{}{"one", "two", "three"}))
+					Expect(field.Value).To(Equal([]string{"one", "two", "three"}))
+					ow := fmt.Errorf("ow")
+					Expect(field.Errors).To(Equal([]error{ow, ow, ow}))
+				})
+
+			})
+
+			Context("When there is a type sub-handler", func() {
+				BeforeEach(func() {
+					handler = rv.ListHandler{SubHandlers: rv.FieldHandlers{
+						rv.TypeHandler{Type: "int"},
+					}}
+				})
+
+				It("will transform a comma-separated string with ints into a slice of ints", func() {
+					field.Value = "1,2,3"
+					handler.Run(req, field)
+					Expect(field.Value).To(Equal([]int{1, 2, 3}))
+				})
+
+				It("will transform a slice of strings into a slice of ints", func() {
+					field.Value = []string{"1", "2", "3"}
+					handler.Run(req, field)
+					Expect(field.Value).To(Equal([]int{1, 2, 3}))
+				})
+
+				It("will transform a slice of ints into a slice of strings", func() {
+					field.Value = []int{1, 2, 3}
+					handler = rv.ListHandler{SubHandlers: rv.FieldHandlers{
+						rv.TypeHandler{Type: "string"},
+					}}
+					handler.Run(req, field)
+					Expect(field.Value).To(Equal([]string{"1", "2", "3"}))
+				})
+
+			})
 		})
 	})
 

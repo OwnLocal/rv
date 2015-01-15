@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 	"strconv"
+	"strings"
 )
 
 type FieldHandlerCreator func(args []string) (FieldHandler, error)
@@ -136,4 +137,43 @@ func (h OptionsHandler) Run(req Request, field *Field) {
 		}
 		field.Errors = append(field.Errors, fmt.Errorf("Expected one of %#v, got %#v", options, val))
 	}
+}
+
+type ListHandler struct {
+	SubHandlers FieldHandlers
+}
+
+func (h ListHandler) Run(req Request, field *Field) {
+	var fields []*Field
+	if field.Value == nil {
+		return
+	} else if val, ok := field.Value.(string); ok {
+		for _, part := range strings.Split(val, ",") {
+			fields = append(fields, &Field{Value: part})
+		}
+	} else if reflect.TypeOf(field.Value).Kind() == reflect.Slice {
+		slice := reflect.ValueOf(field.Value)
+		for i := 0; i < slice.Len(); i++ {
+			fields = append(fields, &Field{Value: slice.Index(i).Interface()})
+		}
+	} else {
+		field.Errors = append(field.Errors, fmt.Errorf("Expected a comma-separated string or a slice, got %#v", field.Value))
+	}
+
+	for _, subField := range fields {
+		for _, handler := range h.SubHandlers {
+			handler.Run(req, subField)
+		}
+	}
+
+	if len(fields) == 0 {
+		return
+	}
+
+	valSlice := reflect.MakeSlice(reflect.SliceOf(reflect.TypeOf(fields[0].Value)), 0, len(fields))
+	for _, subField := range fields {
+		valSlice = reflect.Append(valSlice, reflect.ValueOf(subField.Value))
+		field.Errors = append(field.Errors, subField.Errors...)
+	}
+	field.Value = valSlice.Interface()
 }
