@@ -443,4 +443,37 @@ var _ = Describe("Validators", func() {
 		})
 	})
 
+	Describe("RequiredHandler", func() {
+		Describe("NewRequiredHandler", func() {
+			It("accepts string forms of bools as in strconv.ParseBool", func() {
+				Expect(rv.NewRequiredHandler([]string{"1"})).To(Equal(rv.RequiredHandler{Required: true}))
+				Expect(rv.NewRequiredHandler([]string{"t"})).To(Equal(rv.RequiredHandler{Required: true}))
+				Expect(rv.NewRequiredHandler([]string{"T"})).To(Equal(rv.RequiredHandler{Required: true}))
+				Expect(rv.NewRequiredHandler([]string{"TRUE"})).To(Equal(rv.RequiredHandler{Required: true}))
+				Expect(rv.NewRequiredHandler([]string{"true"})).To(Equal(rv.RequiredHandler{Required: true}))
+				Expect(rv.NewRequiredHandler([]string{"True"})).To(Equal(rv.RequiredHandler{Required: true}))
+
+				Expect(rv.NewRequiredHandler([]string{"0"})).To(Equal(rv.RequiredHandler{Required: false}))
+				Expect(rv.NewRequiredHandler([]string{"f"})).To(Equal(rv.RequiredHandler{Required: false}))
+				Expect(rv.NewRequiredHandler([]string{"F"})).To(Equal(rv.RequiredHandler{Required: false}))
+				Expect(rv.NewRequiredHandler([]string{"FALSE"})).To(Equal(rv.RequiredHandler{Required: false}))
+				Expect(rv.NewRequiredHandler([]string{"false"})).To(Equal(rv.RequiredHandler{Required: false}))
+				Expect(rv.NewRequiredHandler([]string{"False"})).To(Equal(rv.RequiredHandler{Required: false}))
+			})
+
+			It("rejects strings that don't represent bools", func() {
+				_, err := rv.NewRequiredHandler([]string{"dksjfsdds"})
+				Expect(err).To(HaveOccurred())
+			})
+		})
+
+		Describe("Run", func() {
+			It("adds an error if a required field is not present", func() {
+				rv.RequiredHandler{Required: true}.Run(req, field)
+				Expect(field.Errors).NotTo(BeEmpty())
+				Expect(field.Errors[0]).To(HaveOccurred())
+			})
+		})
+	})
+
 })

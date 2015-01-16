@@ -7,11 +7,12 @@ import (
 )
 
 var handlerMap = map[string]FieldHandlerCreator{
-	"source":  NewSourceFieldHandler,
-	"type":    NewTypeHandler,
-	"default": NewDefaultHandler,
-	"range":   NewRangeHandler,
-	"options": NewOptionsHandler,
+	"source":   NewSourceFieldHandler,
+	"type":     NewTypeHandler,
+	"default":  NewDefaultHandler,
+	"range":    NewRangeHandler,
+	"options":  NewOptionsHandler,
+	"required": NewRequiredHandler,
 }
 
 type RequestHandler struct {

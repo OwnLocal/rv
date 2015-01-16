@@ -184,3 +184,22 @@ func (h ListHandler) Run(req Request, field *Field) {
 type RequiredHandler struct {
 	Required bool
 }
+
+func NewRequiredHandler(args []string) (FieldHandler, error) {
+	if required, err := strconv.ParseBool(args[0]); err == nil {
+		return RequiredHandler{Required: required}, nil
+	} else {
+		return nil, err
+	}
+
+}
+
+func (h RequiredHandler) Run(req Request, field *Field) {
+	if h.Required && field.Value == nil {
+		field.Errors = append(field.Errors, fmt.Errorf("required field missing"))
+	}
+}
+
+func (h RequiredHandler) Precidence() int {
+	return -100
+}

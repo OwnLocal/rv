@@ -94,6 +94,22 @@ var _ = Describe("RequestHandler", func() {
 			Expect(rh.Fields).To(Equal(expected))
 		})
 
+		It("generates a required handler for tags that specify required", func() {
+			rh, err := rv.NewRequestHandler(struct {
+				Foo int `rv:"query.foo required=true range=1,2"`
+			}{})
+			expected := map[string]rv.FieldHandlers{
+				"Foo": rv.FieldHandlers{
+					rv.SourceFieldHandler{Source: rv.QUERY, Field: "foo"},
+					rv.TypeHandler{Type: "int"},
+					rv.RangeHandler{Start: "1", End: "2"},
+					rv.RequiredHandler{Required: true},
+				},
+			}
+			Expect(err).NotTo(HaveOccurred())
+			Expect(rh.Fields).To(Equal(expected))
+		})
+
 		It("generates a list handler for tags on list types", func() {
 			rh, err := rv.NewRequestHandler(struct {
 				Foo []string `rv:"query.foo options=one,two,three default=one,two"`
