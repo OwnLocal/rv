@@ -54,18 +54,16 @@ func (h TypeHandler) Run(r Request, f *Field) {
 	}
 }
 
+// Follows the bool string options in strconv.ParseBool http://golang.org/pkg/strconv/#ParseBool
 func toBool(val *interface{}) (err error) {
 	switch v := (*val).(type) {
 	case bool:
 		// already ok
 	case string:
-		switch v {
-		case "true", "1", "yes":
-			*val = true
-		case "false", "0", "no":
-			*val = false
-		default:
-			err = fmt.Errorf("bool string expected 'true', '1', 'yes', 'false', '0', or 'no', got '%s'", v)
+		if b, e := strconv.ParseBool(v); e == nil {
+			*val = b
+		} else {
+			err = e
 		}
 	case int, int8, int16, int32, int64:
 		switch reflect.ValueOf(v).Int() {

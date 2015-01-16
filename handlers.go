@@ -180,3 +180,7 @@ func (h ListHandler) Run(req Request, field *Field) {
 	}
 	field.Value = valSlice.Interface()
 }
+
+type RequiredHandler struct {
+	Required bool
+}
