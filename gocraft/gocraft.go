@@ -2,7 +2,9 @@ package gocraft
 
 import (
 	"errors"
+	"fmt"
 	"io/ioutil"
+	"net/http"
 	"net/url"
 
 	"github.com/gocraft/web"
@@ -56,3 +58,42 @@ func (r *Request) BodyForm() (url.Values, error) {
 
 // Ensure *gocract.Request meets the rv.Request interface
 var _ rv.Request = (*Request)(nil)
+
+// BindMiddleware creates an rv.RequestHandler for the specified field
+// type and returns a middleware which finds a field of that type on
+// the context and binds the values to that field via the
+// RequestHandler.
+func BindMiddleware(field interface{}, errorWriter ...func(web.ResponseWriter, error, map[string]rv.Field)) func(
+	interface{}, web.ResponseWriter, *web.Request, web.NextMiddlewareFunc) {
+
+	if len(errorWriter) < 1 {
+		errorWriter = append(errorWriter, ErrorWriter)
+	}
+
+	argHandler, err := rv.NewRequestHandler(field)
+	if err != nil {
+		panic("Unable to create RequestHandler: " + err.Error())
+	}
+
+	return func(ctx interface{}, rw web.ResponseWriter, r *web.Request, next web.NextMiddlewareFunc) {
+		err, fieldErrors := argHandler.Bind(&Request{Request: r}, ctx)
+		if err != nil || len(fieldErrors) > 0 {
+			errorWriter[0](rw, err, fieldErrors)
+		} else {
+			next(rw, r)
+		}
+	}
+}
+
+func ErrorWriter(rw web.ResponseWriter, argErr error, fieldErrors map[string]rv.Field) {
+	if argErr != nil {
+		panic(argErr)
+	}
+
+	rw.WriteHeader(http.StatusBadRequest)
+	for name, field := range fieldErrors {
+		for _, err := range field.Errors {
+			fmt.Fprintln(rw, name, err)
+		}
+	}
+}

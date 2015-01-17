@@ -163,4 +163,55 @@ var _ = Describe("RequestHandler", func() {
 		})
 	})
 
+	Describe("Bind", func() {
+		type testStruct struct {
+			Foo int `rv:"query.i"`
+		}
+		type testContext struct {
+			Foo  string
+			Args testStruct
+		}
+		type badContext struct {
+			Foo  string
+			Args map[int]string
+		}
+		var (
+			rh  *rv.RequestHandler
+			tc  *testContext
+			bc  *badContext
+			req *rv.BasicRequest
+			err error
+		)
+
+		BeforeEach(func() {
+			tc = &testContext{}
+			bc = &badContext{}
+			rh, err = rv.NewRequestHandler(testStruct{})
+			req = &rv.BasicRequest{Query: "i=42"}
+		})
+
+		Context("When the provided struct contains an attribute of the correct type", func() {
+
+			It("finds the matching struct and fills it in", func() {
+				err, fieldErrs := rh.Bind(req, tc)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(fieldErrs).To(BeEmpty())
+				Expect(tc.Args.Foo).To(Equal(42))
+				// Call again to make sure caching doesn't explode
+				req.Query = "i=1"
+				err, fieldErrs = rh.Bind(req, tc)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(fieldErrs).To(BeEmpty())
+				Expect(tc.Args.Foo).To(Equal(1))
+			})
+
+			It("returns an error when the container doesn't have the expected struct", func() {
+				err, fieldErrs := rh.Bind(req, bc)
+				Expect(err).To(HaveOccurred())
+				Expect(fieldErrs).To(BeEmpty())
+			})
+
+		})
+
+	})
 })

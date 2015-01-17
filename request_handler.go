@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 	"sort"
+	"sync"
 )
 
 var handlerMap = map[string]FieldHandlerCreator{
@@ -18,15 +19,23 @@ var handlerMap = map[string]FieldHandlerCreator{
 type RequestHandler struct {
 	Fields      map[string]FieldHandlers
 	requestType reflect.Type
+
+	indexCache     map[reflect.Type]int
+	indexCacheLock sync.Mutex
 }
 
+// NewRequestHandler builds a RequestHandler which will extract and
+// validate values from a request based on the "rv" tags on the struct
+// fields.
 func NewRequestHandler(requestStruct interface{}) (*RequestHandler, error) {
 	tags, err := extractTags(requestStruct)
 	if err != nil {
 		return nil, err
 	}
 
-	requestHandler := RequestHandler{requestType: reflect.TypeOf(requestStruct)}
+	requestHandler := RequestHandler{
+		requestType: reflect.TypeOf(requestStruct),
+		indexCache:  make(map[reflect.Type]int)}
 
 	handlers := map[string]FieldHandlers{}
 	for field, opts := range tags {
@@ -58,6 +67,8 @@ func NewRequestHandler(requestStruct interface{}) (*RequestHandler, error) {
 	return &requestHandler, nil
 }
 
+// Run fills the provided struct with data from the request, as
+// specified in the "rv" tags on the struct fields.
 func (h *RequestHandler) Run(req Request, requestStruct interface{}) (argErr error, fieldErrors map[string]Field) {
 	val := reflect.ValueOf(requestStruct)
 	if val.Type().Kind() != reflect.Ptr || val.Type().Elem() != h.requestType {
@@ -79,6 +90,54 @@ func (h *RequestHandler) Run(req Request, requestStruct interface{}) (argErr err
 	}
 
 	return nil, nil
+}
+
+// Bind searches the container for a field matching the
+// RequestHandler's field type, then fills it by calling
+// RequestHandler.Run with the specified Request and the matching
+// field.
+func (h *RequestHandler) Bind(req Request, container interface{}) (argErr error, fieldErrors map[string]Field) {
+	val := reflect.ValueOf(container)
+	if val.Type().Kind() != reflect.Ptr {
+		return fmt.Errorf("Expected pointer to struct, got %T", container), nil
+	}
+
+	val = val.Elem()
+	if val.Type().Kind() != reflect.Struct {
+		return fmt.Errorf("Expected pointer to struct, got %T", container), nil
+	}
+
+	i, err := h.fieldIndex(val.Type())
+	if err != nil {
+		return err, nil
+	}
+
+	return h.Run(req, val.Field(i).Addr().Interface())
+}
+
+func (h *RequestHandler) fieldIndex(container reflect.Type) (int, error) {
+	h.indexCacheLock.Lock()
+	i, ok := h.indexCache[container]
+	h.indexCacheLock.Unlock()
+	if ok {
+		return i, nil
+	}
+
+	for i := 0; i < container.NumField(); i++ {
+		field := container.Field(i)
+		fieldType := field.Type
+		if fieldType.Kind() == reflect.Ptr {
+			fieldType = fieldType.Elem()
+		}
+		if fieldType == h.requestType {
+			h.indexCacheLock.Lock()
+			h.indexCache[container] = i
+			h.indexCacheLock.Unlock()
+
+			return i, nil
+		}
+	}
+	return 0, fmt.Errorf("No %v field found in provided %v", h.requestType, container)
 }
 
 func addRegularHandler(fieldHandlers FieldHandlers, opt string, args []string) (FieldHandlers, error) {
