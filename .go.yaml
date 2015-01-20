@@ -1,5 +1,5 @@
 ---
-path: github.com/ownlocal/rv
+path: github.com/OwnLocal/rv
 deps:
   - loc: github.com/gocraft/web
 

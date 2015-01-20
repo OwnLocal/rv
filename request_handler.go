@@ -98,12 +98,12 @@ func (h *RequestHandler) Run(req Request, requestStruct interface{}) (argErr err
 // field.
 func (h *RequestHandler) Bind(req Request, container interface{}) (argErr error, fieldErrors map[string]Field) {
 	val := reflect.ValueOf(container)
-	if val.Type().Kind() != reflect.Ptr {
+	if val.Kind() != reflect.Ptr {
 		return fmt.Errorf("Expected pointer to struct, got %T", container), nil
 	}
 
 	val = val.Elem()
-	if val.Type().Kind() != reflect.Struct {
+	if val.Kind() != reflect.Struct {
 		return fmt.Errorf("Expected pointer to struct, got %T", container), nil
 	}
 

@@ -6,8 +6,8 @@ import (
 	"net/url"
 	"strings"
 
+	. "github.com/OwnLocal/rv/gocraft"
 	"github.com/gocraft/web"
-	. "github.com/ownlocal/rv/gocraft"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

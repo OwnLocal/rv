@@ -3,7 +3,7 @@ package rv_test
 import (
 	"net/url"
 
-	. "github.com/pib/rv"
+	. "github.com/OwnLocal/rv"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

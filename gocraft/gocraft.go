@@ -7,8 +7,8 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/OwnLocal/rv"
 	"github.com/gocraft/web"
-	"github.com/ownlocal/rv"
 )
 
 type Request struct {

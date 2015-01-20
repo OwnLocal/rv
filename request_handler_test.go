@@ -1,7 +1,7 @@
 package rv_test
 
 import (
-	"github.com/ownlocal/rv"
+	"github.com/OwnLocal/rv"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

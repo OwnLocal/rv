@@ -5,9 +5,9 @@ import (
 	"math"
 	"strings"
 
+	"github.com/OwnLocal/rv"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/ownlocal/rv"
 )
 
 type mockHandler struct {
