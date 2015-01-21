@@ -132,7 +132,9 @@ var _ = Describe("RequestHandler", func() {
 
 	Describe("Run", func() {
 		type testStruct struct {
-			Foo []string `rv:"query.foo options=one,two,three default=one"`
+			Foo  []string `rv:"query.foo options=one,two,three default=one"`
+			Num  int      `rv:"query.num default=0"`
+			Num2 int      `rv:"query.num2 default=0"`
 		}
 
 		var (
@@ -160,6 +162,15 @@ var _ = Describe("RequestHandler", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fieldErrs).To(BeEmpty())
 			Expect(ts.Foo).To(Equal([]string{"one"}))
+		})
+
+		It("returns all errors that occur", func() {
+			ts := testStruct{}
+			req.Query = "num=blar&num2=blar"
+			err, fieldErrs := rh.Run(req, &ts)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(fieldErrs).NotTo(BeEmpty())
+			Expect(fieldErrs).To(HaveLen(2))
 		})
 	})
 

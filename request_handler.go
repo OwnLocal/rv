@@ -89,7 +89,7 @@ func (h *RequestHandler) Run(req Request, requestStruct interface{}) (argErr err
 		}
 	}
 
-	return nil, nil
+	return nil, fieldErrors
 }
 
 // Bind searches the container for a field matching the
