@@ -135,6 +135,7 @@ var _ = Describe("RequestHandler", func() {
 			Foo  []string `rv:"query.foo options=one,two,three default=one"`
 			Num  int      `rv:"query.num default=0"`
 			Num2 int      `rv:"query.num2 default=0"`
+			Str  string   `rv:"query.str"`
 		}
 
 		var (
@@ -171,6 +172,14 @@ var _ = Describe("RequestHandler", func() {
 			Expect(err).NotTo(HaveOccurred())
 			Expect(fieldErrs).NotTo(BeEmpty())
 			Expect(fieldErrs).To(HaveLen(2))
+		})
+
+		It("fills in no value when none is provided and there is no default", func() {
+			ts := testStruct{}
+			err, fieldErrs := rh.Run(req, &ts)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(fieldErrs).To(BeEmpty())
+			Expect(ts.Str).To(Equal(""))
 		})
 	})
 

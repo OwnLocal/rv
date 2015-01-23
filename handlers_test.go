@@ -179,6 +179,22 @@ var _ = Describe("Validators", func() {
 			}
 
 			for _, tc := range []tm{
+				tm{"string", nil, nil},
+				tm{"bool", nil, nil},
+				tm{"int", nil, nil},
+				tm{"uint", nil, nil},
+				tm{"float32", nil, nil},
+			} {
+				ttype, from := tc.ttype, tc.from
+				It("does not set value if incoming value is nil", func() {
+					field.Value = from
+					rv.TypeHandler{Type: ttype}.Run(req, field)
+					Expect(field.Errors).To(BeEmpty())
+					Expect(field.Value).To(BeNil())
+				})
+			}
+
+			for _, tc := range []tm{
 				tm{"bool", "foobly", nil},
 				tm{"bool", "42", nil},
 				tm{"bool", 42, nil},

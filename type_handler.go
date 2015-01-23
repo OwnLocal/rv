@@ -30,6 +30,10 @@ func NewTypeHandler(args []string) (FieldHandler, error) {
 
 func (h TypeHandler) Precidence() int { return 800 }
 func (h TypeHandler) Run(r Request, f *Field) {
+	if f.Value == nil {
+		return
+	}
+
 	var err error
 
 	switch h.Type {
