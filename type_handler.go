@@ -5,6 +5,7 @@ import (
 	"math"
 	"reflect"
 	"strconv"
+	"time"
 )
 
 type TypeHandler struct {
@@ -49,6 +50,8 @@ func (h TypeHandler) Run(r Request, f *Field) {
 		err = toFloat(&f.Value, 64)
 	case "string":
 		err = toString(&f.Value)
+	case "time":
+		err = toTime(&f.Value)
 	default:
 		err = fmt.Errorf("don't know how to convert to %s", h.Type)
 	}
@@ -219,5 +222,24 @@ func toFloat(val *interface{}, floatSize int) (err error) {
 
 func toString(val *interface{}) (err error) {
 	*val = fmt.Sprintf("%v", *val)
+	return err
+}
+
+func toTime(val *interface{}) (err error) {
+	switch v := (*val).(type) {
+	case string:
+		for _, time_fmt := range []string{
+			"2006-01-02",
+			"2006-01-02T15:04",
+			"2006-01-02T15:04:05",
+			"2006-01-02T15:04:05Z07:00",
+		} {
+			if *val, err = time.Parse(time_fmt, v); err == nil {
+				break
+			}
+		}
+	default:
+		err = fmt.Errorf("don't know how to convert %T to time", *val)
+	}
 	return err
 }

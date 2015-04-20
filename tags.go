@@ -4,7 +4,10 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"time"
 )
+
+var timeType = reflect.TypeOf(time.Time{})
 
 func extractTags(reqStruct interface{}) (map[string]map[string][]string, error) {
 	reqType := reflect.TypeOf(reqStruct)
@@ -27,8 +30,12 @@ func extractTags(reqStruct interface{}) (map[string]map[string][]string, error) 
 			continue
 		}
 
-		kind := field.Type.Kind()
-		opts["type"] = []string{kind.String()}
+		if field.Type == timeType {
+			opts["type"] = []string{"time"}
+		} else {
+			kind := field.Type.Kind()
+			opts["type"] = []string{kind.String()}
+		}
 
 		if opts["type"][0] == "slice" {
 			opts["type"] = append(opts["type"], field.Type.Elem().Kind().String())

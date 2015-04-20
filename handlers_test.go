@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"strings"
+	"time"
 
 	"github.com/OwnLocal/rv"
 	. "github.com/onsi/ginkgo"
@@ -168,6 +169,12 @@ var _ = Describe("Validators", func() {
 				tm{"string", float32(6.1), "6.1"},
 				tm{"string", float64(7.0), "7"},
 				tm{"string", float64(8.1), "8.1"},
+
+				tm{"time", "2015-01-01", time.Date(2015, time.January, 1, 0, 0, 0, 0, time.UTC)},
+				tm{"time", "2015-01-01T12:13", time.Date(2015, time.January, 1, 12, 13, 0, 0, time.UTC)},
+				tm{"time", "2015-01-01T12:13:14", time.Date(2015, time.January, 1, 12, 13, 14, 0, time.UTC)},
+				tm{"time", "2015-01-01T12:13:14.15", time.Date(2015, time.January, 1, 12, 13, 14, 150000000, time.UTC)},
+				tm{"time", "2015-01-01T12:13:14-07:00", time.Date(2015, time.January, 1, 12, 13, 14, 0, time.FixedZone("", -25200))},
 			} {
 				ttype, from, to := tc.ttype, tc.from, tc.to
 				It(fmt.Sprintf("coerces %T(%#v) to %s(%#v)", from, from, ttype, to), func() {
