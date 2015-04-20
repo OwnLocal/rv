@@ -19,6 +19,7 @@ var acceptedTypes = map[string]struct{}{
 	"uint": y, "uint8": y, "uint16": y, "uint32": y, "uint64": y,
 	"float32": y, "float64": y,
 	"string": y,
+	"time":   y,
 }
 
 func NewTypeHandler(args []string) (FieldHandler, error) {
