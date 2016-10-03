@@ -49,9 +49,9 @@ var _ = Describe("Request", func() {
 	})
 
 	Context("With an nil body", func() {
-		Describe("BodyJson", func() {
+		Describe("BodyJSON", func() {
 			It("returns a nil map", func() {
-				Expect(req.BodyJson()).To(Equal(map[string]interface{}(nil)))
+				Expect(req.BodyJSON()).To(Equal(map[string]interface{}(nil)))
 			})
 		})
 
@@ -67,9 +67,9 @@ var _ = Describe("Request", func() {
 			req.Request.Body = ioutil.NopCloser(strings.NewReader(`{"foo": "bar"}`))
 		})
 
-		Describe("BodyJson", func() {
+		Describe("BodyJSON", func() {
 			It("returns the parsed JSON", func() {
-				Expect(req.BodyJson()).To(Equal(map[string]interface{}{"foo": "bar"}))
+				Expect(req.BodyJSON()).To(Equal(map[string]interface{}{"foo": "bar"}))
 			})
 		})
 
@@ -87,9 +87,9 @@ var _ = Describe("Request", func() {
 			req.Request.Body = ioutil.NopCloser(strings.NewReader(`foo=bar&one=two`))
 		})
 
-		Describe("BodyJson", func() {
+		Describe("BodyJSON", func() {
 			It("returns the a JSON parse error", func() {
-				_, err := req.BodyJson()
+				_, err := req.BodyJSON()
 				Expect(err).To(MatchError("invalid character 'o' in literal false (expecting 'a')"))
 			})
 		})
@@ -101,14 +101,14 @@ var _ = Describe("Request", func() {
 		})
 	})
 
-	Context("When the body has already been read by the BodyJson method", func() {
+	Context("When the body has already been read by the BodyJSON method", func() {
 		BeforeEach(func() {
-			req.BodyJson()
+			req.BodyJSON()
 		})
 
-		Describe("BodyJson", func() {
+		Describe("BodyJSON", func() {
 			It("returns an body-already-read error", func() {
-				json, err := req.BodyJson()
+				json, err := req.BodyJSON()
 				Expect(json).To(Equal(map[string]interface{}(nil)))
 				Expect(err).To(MatchError("body already read"))
 			})

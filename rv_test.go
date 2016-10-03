@@ -32,7 +32,7 @@ var _ = Describe("BasicRequest", func() {
 
 		Describe("BodyJson", func() {
 			It("returns an empty map[string]interface{}", func() {
-				Expect(req.BodyJson()).To(Equal(map[string]interface{}(nil)))
+				Expect(req.BodyJSON()).To(Equal(map[string]interface{}(nil)))
 			})
 		})
 
@@ -79,7 +79,7 @@ var _ = Describe("BasicRequest", func() {
 
 		Describe("BodyJson", func() {
 			It("returns the parsed JSON", func() {
-				Expect(req.BodyJson()).To(Equal(map[string]interface{}{"foo": "bar"}))
+				Expect(req.BodyJSON()).To(Equal(map[string]interface{}{"foo": "bar"}))
 			})
 		})
 
@@ -99,7 +99,7 @@ var _ = Describe("BasicRequest", func() {
 
 		Describe("BodyJson", func() {
 			It("return a JSON parse error", func() {
-				_, err := req.BodyJson()
+				_, err := req.BodyJSON()
 				Expect(err).To(MatchError("invalid character 'o' looking for beginning of value"))
 			})
 		})

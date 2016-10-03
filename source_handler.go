@@ -78,7 +78,7 @@ func (h SourceFieldHandler) Run(r Request, f *Field) {
 
 	case JSON:
 		var json map[string]interface{}
-		json, err = r.BodyJson()
+		json, err = r.BodyJSON()
 		val, ok = json[h.Field]
 
 	case FORM:

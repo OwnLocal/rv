@@ -12,9 +12,13 @@ import (
 // Request is the interface to implement to allow rv to read values
 // from a HTTP request.
 type Request interface {
+	// QueryArgs returns the query parameters from the request URL
 	QueryArgs() (url.Values, error)
+	// PathArgs returns any parameters from the URL path, if supported by the request
 	PathArgs() (map[string]string, error)
-	BodyJson() (map[string]interface{}, error)
+	// BodyJSON reads the request body and parses it as JSON
+	BodyJSON() (map[string]interface{}, error)
+	// BodyForm reads the request body and parses it as a form encoding
 	BodyForm() (url.Values, error)
 }
 
@@ -26,20 +30,28 @@ type BasicRequest struct {
 	Body  string
 }
 
+// QueryArgs parses the Query field
 func (r *BasicRequest) QueryArgs() (url.Values, error) {
 	return url.ParseQuery(r.Query)
 }
+
+// PathArgs returns the Path field value
 func (r *BasicRequest) PathArgs() (map[string]string, error) {
 	return r.Path, nil
 }
-func (r *BasicRequest) BodyJson() (map[string]interface{}, error) {
-	return ParseJsonBody(strings.NewReader(r.Body))
+
+// BodyJSON parses the Body string as JSON
+func (r *BasicRequest) BodyJSON() (map[string]interface{}, error) {
+	return ParseJSONBody(strings.NewReader(r.Body))
 }
+
+// BodyForm parses the Body string as a form
 func (r *BasicRequest) BodyForm() (url.Values, error) {
 	return url.ParseQuery(r.Body)
 }
 
-func ParseJsonBody(body io.Reader) (map[string]interface{}, error) {
+// ParseJSONBody attempts to parse a JSON body from the provided io.Reader
+func ParseJSONBody(body io.Reader) (map[string]interface{}, error) {
 	if body == nil {
 		return nil, nil
 	}

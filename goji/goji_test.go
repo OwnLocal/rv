@@ -79,9 +79,9 @@ var _ = Describe("Request", func() {
 		BeforeEach(func() {
 			req = httptest.NewRequest("GET", "/foo", nil)
 		})
-		Describe("BodyJson", func() {
+		Describe("BodyJSON", func() {
 			It("returns a nil map", func() {
-				Expect(rvReq.BodyJson()).To(Equal(map[string]interface{}(nil)))
+				Expect(rvReq.BodyJSON()).To(Equal(map[string]interface{}(nil)))
 			})
 		})
 
@@ -97,9 +97,9 @@ var _ = Describe("Request", func() {
 			req = httptest.NewRequest("GET", "/foo", ioutil.NopCloser(strings.NewReader(`{"foo": "bar"}`)))
 		})
 
-		Describe("BodyJson", func() {
+		Describe("BodyJSON", func() {
 			It("returns the parsed JSON", func() {
-				Expect(rvReq.BodyJson()).To(Equal(map[string]interface{}{"foo": "bar"}))
+				Expect(rvReq.BodyJSON()).To(Equal(map[string]interface{}{"foo": "bar"}))
 			})
 		})
 
@@ -117,9 +117,9 @@ var _ = Describe("Request", func() {
 			req = httptest.NewRequest("GET", "/foo", ioutil.NopCloser(strings.NewReader(`foo=bar&one=two`)))
 		})
 
-		Describe("BodyJson", func() {
+		Describe("BodyJSON", func() {
 			It("returns the a JSON parse error", func() {
-				_, err := rvReq.BodyJson()
+				_, err := rvReq.BodyJSON()
 				Expect(err).To(MatchError("invalid character 'o' in literal false (expecting 'a')"))
 			})
 		})
@@ -131,14 +131,14 @@ var _ = Describe("Request", func() {
 		})
 	})
 
-	Context("When the body has already been read by the BodyJson method", func() {
+	Context("When the body has already been read by the BodyJSON method", func() {
 		BeforeEach(func() {
-			rvReq.BodyJson()
+			rvReq.BodyJSON()
 		})
 
-		Describe("BodyJson", func() {
+		Describe("BodyJSON", func() {
 			It("returns an body-already-read error", func() {
-				json, err := rvReq.BodyJson()
+				json, err := rvReq.BodyJSON()
 				Expect(json).To(Equal(map[string]interface{}(nil)))
 				Expect(err).To(MatchError("body already read"))
 			})

@@ -28,13 +28,13 @@ func (r *Request) PathArgs() (map[string]string, error) {
 	return r.Request.PathParams, nil
 }
 
-func (r *Request) BodyJson() (map[string]interface{}, error) {
+func (r *Request) BodyJSON() (map[string]interface{}, error) {
 	if r.bodyRead {
 		return nil, errors.New("body already read")
 	}
 
 	r.bodyRead = true
-	return rv.ParseJsonBody(r.Request.Body)
+	return rv.ParseJSONBody(r.Request.Body)
 }
 
 func (r *Request) BodyForm() (url.Values, error) {

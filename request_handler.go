@@ -16,6 +16,7 @@ var handlerMap = map[string]FieldHandlerCreator{
 	"required": NewRequiredHandler,
 }
 
+// RequestHandler extracts and validates values from a request based on "rv" tags on the struct fields.
 type RequestHandler struct {
 	Fields      map[string]FieldHandlers
 	requestType reflect.Type
@@ -166,6 +167,7 @@ func addListHandler(fieldHandlers FieldHandlers, listHandler ListHandler) (fh Fi
 	return fh
 }
 
+// FieldHandlers is a sortable list of FieldHandlers
 type FieldHandlers []FieldHandler
 
 func (f FieldHandlers) precidence(i int) int {
