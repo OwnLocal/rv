@@ -1,0 +1,45 @@
+hash: 6847b2d4133ec311f6436cca996de2954e3956ae464c801af65c0db13e037931
+updated: 2016-10-03T15:19:03.066524371-05:00
+imports:
+- name: github.com/gocraft/web
+  version: 0973dfd3866277297f7caed311af67cc4ca1126e
+- name: goji.io
+  version: 491574a68aafef9ffec867f25c78a87624e80c37
+  subpackages:
+  - internal
+  - pat
+  - pattern
+testImports:
+- name: github.com/onsi/ginkgo
+  version: 462326b1628e124b23f42e87a8f2750e3c4e2d24
+  subpackages:
+  - config
+  - internal/codelocation
+  - internal/containernode
+  - internal/failer
+  - internal/leafnodes
+  - internal/remote
+  - internal/spec
+  - internal/specrunner
+  - internal/suite
+  - internal/testingtproxy
+  - internal/writer
+  - reporters
+  - reporters/stenographer
+  - types
+- name: github.com/onsi/gomega
+  version: d59fa0ac68bb5dd932ee8d24eed631cdd519efc3
+  subpackages:
+  - format
+  - internal/assertion
+  - internal/asyncassertion
+  - internal/oraclematcher
+  - internal/testingtsupport
+  - matchers
+  - matchers/support/goraph/bipartitegraph
+  - matchers/support/goraph/edge
+  - matchers/support/goraph/node
+  - matchers/support/goraph/util
+  - types
+- name: gopkg.in/yaml.v2
+  version: a5b47d31c556af34a302ce5d659e6fea44d90de0
